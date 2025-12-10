@@ -13,7 +13,7 @@
 		{
 			"binding": "DB",
 			"database_name": "lms_db",
-			"database_id": "8e2cdc6d-71e8-462b-bf8a-64f98daacf92",
+			"database_id": "3335d0dc-d8af-41c7-aebf-3583da4b1dde",
 			"migrations_dir": "drizzle"
 		}
 	],

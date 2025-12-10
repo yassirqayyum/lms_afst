@@ -1,4 +1,4 @@
-import { IconDashboard, IconHelp } from "@tabler/icons-react";
+import { IconDashboard, IconHelp, IconUsers, IconBook, IconChecklist } from "@tabler/icons-react";
 import { GraduationCap } from "lucide-react";
 import * as React from "react";
 
@@ -25,15 +25,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     avatar: data?.user.image || "/avatars/default.jpg",
   };
 
+
+  const role = (data?.user as any)?.role;
+
+  const navMain = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: IconDashboard,
+    },
+  ];
+
+  if (role === "admin") {
+    navMain.push(
+      { title: "Manage Users", url: "/users", icon: IconUsers },
+      { title: "Manage Courses", url: "/courses", icon: IconBook },
+    );
+  } else if (role === "trainer") {
+    navMain.push(
+      { title: "My Courses", url: "/trainer/courses", icon: IconBook },
+      { title: "Attendance", url: "/trainer/attendance", icon: IconChecklist },
+    );
+  } else if (role === "trainee") {
+    navMain.push(
+      { title: "My Learning", url: "/learning", icon: IconBook },
+    );
+  }
+
   const sidebarData = {
     user,
-    navMain: [
-      {
-        title: "Dashboard",
-        url: "/dashboard",
-        icon: IconDashboard,
-      },
-    ],
+    navMain,
     navSecondary: [
       {
         title: "Get Help",

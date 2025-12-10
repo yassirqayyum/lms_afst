@@ -14,17 +14,22 @@ DELETE FROM user WHERE id IN ('trainer1', 'student1');
 -- Re-enable foreign key checks
 PRAGMA foreign_keys = ON;
 
+-- Create Admin
+INSERT INTO user (id, name, email, email_verified, role, approved, created_at, updated_at) 
+VALUES ('admin1', 'Admin User', 'admin@lms.com', 1, 'admin', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Create Trainer
-INSERT INTO user (id, name, email, email_verified, role, created_at, updated_at) 
-VALUES ('trainer1', 'Trainer Joe', 'trainer@test.com', 1, 'trainer', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO user (id, name, email, email_verified, role, approved, created_at, updated_at) 
+VALUES ('trainer1', 'Trainer Joe', 'trainer@test.com', 1, 'trainer', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Create Student
-INSERT INTO user (id, name, email, email_verified, role, created_at, updated_at) 
-VALUES ('student1', 'Student Jane', 'student@test.com', 1, 'trainee', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO user (id, name, email, email_verified, role, approved, created_at, updated_at) 
+VALUES ('student1', 'Student Jane', 'student@test.com', 1, 'trainee', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Create Sessions (expires in future)
 INSERT INTO session (id, expires_at, token, created_at, updated_at, user_id)
 VALUES 
+('session_admin', 1956488569000, 'token_admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'admin1'),
 ('session1', 1956488569000, 'token_trainer', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'trainer1'),
 ('session2', 1956488569000, 'token_student', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'student1');
 

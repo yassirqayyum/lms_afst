@@ -10,6 +10,7 @@ export const user = sqliteTable("user", {
     emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
     image: text("image"),
     role: text("role", { enum: userRoleEnum }).notNull().default("trainee"),
+    approved: integer("approved", { mode: "boolean" }).notNull().default(false),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });

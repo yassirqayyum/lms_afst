@@ -8,7 +8,6 @@ import {
     ArrowRight,
     Star,
     Trophy,
-    Clock,
 } from "lucide-react";
 import { getSession } from "@/lib/auth-client";
 

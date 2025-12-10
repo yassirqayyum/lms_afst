@@ -12,6 +12,24 @@ const createCourseSchema = z.object({
   description: z.string().optional(),
 });
 
+const updateUserSchema = z.object({
+  role: z.enum(["admin", "trainer", "trainee"]).optional(),
+  approved: z.boolean().optional(),
+});
+
+const createLectureSchema = z.object({
+  courseId: z.string().min(1, "Course ID is required"),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  scheduledAt: z.string().datetime(),
+});
+
+const markAttendanceSchema = z.object({
+  lectureId: z.string().min(1, "Lecture ID is required"),
+  traineeId: z.string().min(1, "Trainee ID is required"),
+  status: z.enum(["present", "absent", "late"]),
+});
+
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -52,6 +70,49 @@ app.get("/api/users", async (c) => {
   const users = await db.select().from(schema.user);
 
   return c.json({ users });
+});
+
+app.post("/api/admin/users/:id/approve", async (c) => {
+  const user = await getAuthUser(c);
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+  const db = drizzle(c.env.DB);
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+
+  if (!dbUser || dbUser.role !== "admin") {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const userId = c.req.param("id");
+
+  await db
+    .update(schema.user)
+    .set({ approved: true })
+    .where(eq(schema.user.id, userId));
+
+  return c.json({ success: true });
+});
+
+app.post("/api/admin/users/:id/role", zValidator("json", updateUserSchema), async (c) => {
+  const user = await getAuthUser(c);
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+  const db = drizzle(c.env.DB);
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+
+  if (!dbUser || dbUser.role !== "admin") {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const userId = c.req.param("id");
+  const body = c.req.valid("json");
+
+  await db
+    .update(schema.user)
+    .set(body)
+    .where(eq(schema.user.id, userId));
+
+  return c.json({ success: true });
 });
 
 
@@ -177,3 +238,54 @@ app.post("/api/courses/:id/enroll", async (c) => {
 });
 
 export default app;
+
+app.post("/api/lectures", zValidator("json", createLectureSchema), async (c) => {
+  const user = await getAuthUser(c);
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+  const db = drizzle(c.env.DB);
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+
+  if (!dbUser || (dbUser.role !== "trainer" && dbUser.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  // TODO: Check if trainer teaches this course
+
+  const body = c.req.valid("json");
+  const newLecture = {
+    id: crypto.randomUUID(),
+    courseId: body.courseId,
+    title: body.title,
+    description: body.description ?? null,
+    scheduledAt: new Date(body.scheduledAt),
+    createdAt: new Date(),
+  };
+
+  await db.insert(schema.lecture).values(newLecture);
+  return c.json({ lecture: newLecture }, 201);
+});
+
+app.post("/api/attendance", zValidator("json", markAttendanceSchema), async (c) => {
+  const user = await getAuthUser(c);
+  if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+  const db = drizzle(c.env.DB);
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+
+  if (!dbUser || (dbUser.role !== "trainer" && dbUser.role !== "admin")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const body = c.req.valid("json");
+  const newAttendance = {
+    id: crypto.randomUUID(),
+    lectureId: body.lectureId,
+    traineeId: body.traineeId,
+    status: body.status,
+    markedAt: new Date(),
+  };
+
+  await db.insert(schema.attendance).values(newAttendance);
+  return c.json({ attendance: newAttendance }, 201);
+});

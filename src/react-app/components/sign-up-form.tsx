@@ -9,6 +9,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { signUp } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +29,7 @@ const formSchema = z
     name: z.string().min(1, {
       message: "Name is required.",
     }),
+    role: z.enum(["trainer", "trainee"]),
     email: z.string().email({
       message: "Please enter a valid email address.",
     }),
@@ -46,6 +54,7 @@ export function SignUpForm({
       email: "",
       password: "",
       confirmPassword: "",
+      role: "trainee",
     },
   });
 
@@ -57,7 +66,8 @@ export function SignUpForm({
         email: values.email,
         password: values.password,
         name: values.name,
-      });
+        role: values.role,
+      } as any);
 
       if (error) {
         throw new Error(error.message);
@@ -114,6 +124,27 @@ export function SignUpForm({
               <FormControl>
                 <Input placeholder="m@example.com" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Role</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="trainee">Trainee</SelectItem>
+                  <SelectItem value="trainer">Trainer</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
