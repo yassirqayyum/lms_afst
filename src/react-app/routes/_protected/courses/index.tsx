@@ -91,10 +91,10 @@ function CoursesPage() {
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">
                           <Button variant="outline" size="sm" asChild>
-                            <Link to={`/courses/${course.id}`}>View</Link>
+                            <Link to="/courses/$courseId" params={{ courseId: course.id }}>View</Link>
                           </Button>
                           <Button variant="secondary" size="sm" asChild>
-                            <Link to={`/courses/${course.id}/enrollments`}>Enrollments</Link>
+                            <Link to="/courses/$courseId/enrollments" params={{ courseId: course.id }}>Enrollments</Link>
                           </Button>
                         </div>
                       </TableCell>
