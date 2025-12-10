@@ -18,6 +18,10 @@ PRAGMA foreign_keys = ON;
 INSERT INTO user (id, name, email, email_verified, role, approved, created_at, updated_at) 
 VALUES ('admin1', 'Admin User', 'admin@lms.com', 1, 'admin', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- Create Admin Account (Password)
+INSERT INTO account (id, account_id, provider_id, user_id, password, created_at, updated_at)
+VALUES ('acc_admin', 'admin1', 'credential', 'admin1', 'xg/GoYhMq7zreX6byhvs4JkXRZHgO4IljheuZHw0fGfQyLp0g8NKehR2fJg6ujt6', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Create Trainer
 INSERT INTO user (id, name, email, email_verified, role, approved, created_at, updated_at) 
 VALUES ('trainer1', 'Trainer Joe', 'trainer@test.com', 1, 'trainer', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

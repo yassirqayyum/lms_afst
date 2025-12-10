@@ -19,16 +19,15 @@ export const Route = createFileRoute("/_protected")({
     // If approved and ON pending page, redirect to dashboard.
 
     const user = data?.user as any;
-    const isApproved = user?.approved;
-    const isPendingPage = location.pathname === "/pending-approval";
+    // const isApproved = user?.approved;
+    // const isPendingPage = location.pathname === "/pending-approval";
 
-    if (!isApproved && !isPendingPage) {
-      redirect({ to: "/pending-approval" as any, throw: true });
-    }
+    // We no longer redirect to /pending-approval. 
+    // Instead we let them through to dashboard and handle restricted view there.
 
-    if (isApproved && isPendingPage) {
-      redirect({ to: "/dashboard", throw: true });
-    }
+    // if (!isApproved && !isPendingPage) {
+    //   redirect({ to: "/pending-approval" as any, throw: true });
+    // }
   },
   component: RouteComponent,
 });

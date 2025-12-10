@@ -124,6 +124,13 @@ app.get("/api/courses", async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
   const db = drizzle(c.env.DB);
+
+  // Check if approved (unless admin)
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+  if (!dbUser?.approved && dbUser?.role !== "admin") {
+    return c.json({ courses: [] });
+  }
+
   // Fetch all courses with trainer details (for simplicity just courses first)
   const courses = await db.select().from(schema.course);
   return c.json({ courses });
@@ -135,6 +142,13 @@ app.get("/api/my-enrollments", async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
   const db = drizzle(c.env.DB);
+
+  // Check if approved
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+  if (!dbUser?.approved && dbUser?.role !== "admin") {
+    return c.json({ enrollments: [] });
+  }
+
   // Fetch enrollments for current user
   const enrollments = await db
     .select({
@@ -165,8 +179,8 @@ app.post("/api/courses", zValidator("json", createCourseSchema), async (c) => {
   }
 
   // Role check: Only 'trainer' or 'admin' can create courses
-  if (dbUser.role !== "trainer" && dbUser.role !== "admin") {
-    return c.json({ error: "Forbidden: Only trainers can create courses" }, 403);
+  if ((dbUser.role !== "trainer" && dbUser.role !== "admin") || (!dbUser.approved && dbUser.role !== "admin")) {
+    return c.json({ error: "Forbidden: Only approved trainers can create courses" }, 403);
   }
 
   const body = c.req.valid("json");
@@ -205,6 +219,10 @@ app.post("/api/courses/:id/enroll", async (c) => {
   // Role check: Only 'trainee' can enroll
   if (dbUser.role !== "trainee") {
     return c.json({ error: "Forbidden: Only trainees can enroll in courses" }, 403);
+  }
+
+  if (!dbUser.approved) {
+    return c.json({ error: "Forbidden: Account not approved" }, 403);
   }
 
   const courseId = c.req.param("id");
@@ -250,6 +268,10 @@ app.post("/api/lectures", zValidator("json", createLectureSchema), async (c) => 
     return c.json({ error: "Forbidden" }, 403);
   }
 
+  if (!dbUser.approved && dbUser.role !== "admin") {
+    return c.json({ error: "Forbidden: Account not approved" }, 403);
+  }
+
   // TODO: Check if trainer teaches this course
 
   const body = c.req.valid("json");
@@ -275,6 +297,10 @@ app.post("/api/attendance", zValidator("json", markAttendanceSchema), async (c) 
 
   if (!dbUser || (dbUser.role !== "trainer" && dbUser.role !== "admin")) {
     return c.json({ error: "Forbidden" }, 403);
+  }
+
+  if (!dbUser.approved && dbUser.role !== "admin") {
+    return c.json({ error: "Forbidden: Account not approved" }, 403);
   }
 
   const body = c.req.valid("json");

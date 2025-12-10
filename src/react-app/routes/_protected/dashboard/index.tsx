@@ -74,7 +74,7 @@ function Dashboard() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="flex items-center justify-between space-y-2 py-4">
             <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-            {user?.role === "trainer" && (
+            {user?.role === "trainer" && user?.approved && (
               <>
                 <Button asChild>
                   <Link to="/courses/create">
@@ -88,7 +88,7 @@ function Dashboard() {
                 </Button>
               </>
             )}
-            {user?.role === "trainee" && (
+            {user?.role === "trainee" && user?.approved && (
               <Button variant="default" asChild>
                 <Link to="/courses">
                   <BookOpen className="mr-2 h-4 w-4" /> Browse Courses
@@ -97,66 +97,78 @@ function Dashboard() {
             )}
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {user?.role === "trainer" ? "Active Courses" : "Enrolled Courses"}
-                </CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{courses.length}</div>
-              </CardContent>
-            </Card>
-            {/* Placeholder stats */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Completion Rate
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">0%</div>
-                <p className="text-xs text-muted-foreground">Start learning today!</p>
-              </CardContent>
-            </Card>
-          </div>
+          {!user?.approved && user?.role !== "admin" ? (
+            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-200">
+              <h3 className="text-lg font-semibold">Account Pending Approval</h3>
+              <p className="text-sm">
+                Your account is waiting for administrator approval.
+                {user?.role === "trainer" ? " You cannot manage courses or students yet." : " You cannot view courses or lectures yet."}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {user?.role === "trainer" ? "Active Courses" : "Enrolled Courses"}
+                    </CardTitle>
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{courses.length}</div>
+                  </CardContent>
+                </Card>
+                {/* Placeholder stats */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Completion Rate
+                    </CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">0%</div>
+                    <p className="text-xs text-muted-foreground">Start learning today!</p>
+                  </CardContent>
+                </Card>
+              </div>
 
-          <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-7">
-            <Card className="col-span-7">
-              <CardHeader>
-                <CardTitle>{user?.role === "trainer" ? "My Courses" : "My Learning"}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {courses.length === 0 ? (
-                    <p className="text-muted-foreground">
-                      {user?.role === "trainer"
-                        ? "You haven't created any courses yet."
-                        : "You are not enrolled in any courses."}
-                    </p>
-                  ) : (
-                    courses.map(course => (
-                      <div key={course.id} className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
-                        <div>
-                          <h4 className="font-semibold">{course.title}</h4>
-                          <p className="text-sm text-muted-foreground">{course.description || "No description"}</p>
-                        </div>
-                        {user?.role === "trainee" && (
-                          <Button variant="outline" size="sm">Continue</Button>
-                        )}
-                        {user?.role === "trainer" && (
-                          <Button variant="secondary" size="sm">Manage</Button>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-7">
+                <Card className="col-span-7">
+                  <CardHeader>
+                    <CardTitle>{user?.role === "trainer" ? "My Courses" : "My Learning"}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {courses.length === 0 ? (
+                        <p className="text-muted-foreground">
+                          {user?.role === "trainer"
+                            ? "You haven't created any courses yet."
+                            : "You are not enrolled in any courses."}
+                        </p>
+                      ) : (
+                        courses.map(course => (
+                          <div key={course.id} className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                            <div>
+                              <h4 className="font-semibold">{course.title}</h4>
+                              <p className="text-sm text-muted-foreground">{course.description || "No description"}</p>
+                            </div>
+                            {user?.role === "trainee" && (
+                              <Button variant="outline" size="sm">Continue</Button>
+                            )}
+                            {user?.role === "trainer" && (
+                              <Button variant="secondary" size="sm">Manage</Button>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>
