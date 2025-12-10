@@ -18,7 +18,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Calendar, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -27,7 +27,9 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useSession } from "@/lib/auth-client";
 
-export const Route = createFileRoute("/_protected/courses/$courseId")({
+import { User } from "@/lib/types";
+
+export const Route = createFileRoute("/_protected/courses/$courseId/")({
     component: CourseDetailPage,
 });
 
@@ -40,8 +42,9 @@ function CourseDetailPage() {
     const [newLectureDate, setNewLectureDate] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { data: session } = useSession();
+    const currentUser = session?.user as unknown as User;
 
-    const isTrainer = session?.user.role === "trainer" || session?.user.role === "admin";
+    const isTrainer = currentUser?.role === "trainer" || currentUser?.role === "admin";
 
     useEffect(() => {
         // In a real app, define proper API endpoints to get a single course + lectures

@@ -4,6 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import { User } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, BookOpen, Users } from "lucide-react";
@@ -14,9 +15,16 @@ export const Route = createFileRoute("/_protected/dashboard/")({
 
 function Dashboard() {
   const { data: sessionData } = useSession();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    totalTrainers: 0,
+    totalTrainees: 0,
+    totalEnrollments: 0,
+    totalUsers: 0,
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -24,16 +32,37 @@ function Dashboard() {
         // Fetch full user details to get role
         const meRes = await fetch("/api/me");
         const meData = await meRes.json();
-        const currentUser = meData.user;
+        const currentUser = meData.user as User;
         setUser(currentUser);
 
-        if (currentUser?.role === "trainer" || currentUser?.role === "admin") {
+        if (currentUser?.role === "admin") {
+          // Fetch all data for admin
+          const [coursesRes, usersRes, enrollmentsRes] = await Promise.all([
+            fetch("/api/courses"),
+            fetch("/api/users"),
+            fetch("/api/my-enrollments"),
+          ]);
+
+          const coursesData = await coursesRes.json();
+          const usersData = await usersRes.json();
+          const enrollmentsData = await enrollmentsRes.json();
+
+          setCourses(coursesData.courses || []);
+
+          const trainers = usersData.users?.filter((u: any) => u.role === "trainer") || [];
+          const trainees = usersData.users?.filter((u: any) => u.role === "trainee") || [];
+
+          setStats({
+            totalCourses: coursesData.courses?.length || 0,
+            totalTrainers: trainers.length,
+            totalTrainees: trainees.length,
+            totalEnrollments: enrollmentsData.enrollments?.length || 0,
+            totalUsers: usersData.users?.length || 0,
+          });
+        } else if (currentUser?.role === "trainer") {
           // Fetch managed courses
           const coursesRes = await fetch("/api/courses");
           const coursesData = await coursesRes.json();
-          // Filter for trainer's courses
-          // Note: In a real app the backend should filter, but for now we filter client side 
-          // as the /api/courses returns all
           setCourses(coursesData.courses.filter((c: any) => c.trainerId === currentUser.id));
         } else {
           // Fetch enrollments
@@ -108,30 +137,72 @@ function Dashboard() {
           ) : (
             <>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {user?.role === "trainer" ? "Active Courses" : "Enrolled Courses"}
-                    </CardTitle>
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{courses.length}</div>
-                  </CardContent>
-                </Card>
-                {/* Placeholder stats */}
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Completion Rate
-                    </CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">0%</div>
-                    <p className="text-xs text-muted-foreground">Start learning today!</p>
-                  </CardContent>
-                </Card>
+                {user?.role === "admin" ? (
+                  <>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalCourses}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Trainers</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalTrainers}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Trainees</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalTrainees}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Enrollments</CardTitle>
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{stats.totalEnrollments}</div>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                          {user?.role === "trainer" ? "Active Courses" : "Enrolled Courses"}
+                        </CardTitle>
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{courses.length}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                          Completion Rate
+                        </CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">0%</div>
+                        <p className="text-xs text-muted-foreground">Start learning today!</p>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
               </div>
 
               <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-7">

@@ -20,6 +20,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { User } from "@/lib/types";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -32,6 +33,22 @@ function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    async function fetchCurrentUser() {
+      try {
+        const res = await fetch("/api/me");
+        const data = await res.json();
+        setCurrentUser(data.user as User);
+      } catch (error) {
+        console.error("Failed to fetch current user", error);
+      }
+    }
+    if (session?.user) {
+      fetchCurrentUser();
+    }
+  }, [session]);
 
   const fetchUsers = async () => {
     try {
@@ -46,10 +63,12 @@ function UsersPage() {
   };
 
   useEffect(() => {
-    if (session?.user.role === "admin") {
+    if (currentUser?.role === "admin") {
       fetchUsers();
+    } else if (currentUser) {
+      setLoading(false);
     }
-  }, [session]);
+  }, [currentUser]);
 
   const handleApprove = async (userId: string) => {
     try {
@@ -85,7 +104,15 @@ function UsersPage() {
     }
   };
 
-  if (session?.user.role !== "admin") {
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (currentUser?.role !== "admin") {
     return (
       <div className="flex items-center justify-center h-screen">
         <p>Access Denied. Admins only.</p>

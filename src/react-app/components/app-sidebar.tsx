@@ -15,9 +15,26 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useSession } from "@/lib/auth-client";
+import { User } from "@/lib/types";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data } = useSession();
+  const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+
+  React.useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch("/api/me");
+        const data = await res.json();
+        setCurrentUser(data.user as User);
+      } catch (error) {
+        console.error("Failed to fetch user", error);
+      }
+    }
+    if (data?.user?.id) {
+      fetchUser();
+    }
+  }, [data?.user?.id]);
 
   const user = {
     name: data?.user.name || "User",
@@ -25,8 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     avatar: data?.user.image || "/avatars/default.jpg",
   };
 
-
-  const role = (data?.user as any)?.role;
+  const role = currentUser?.role;
 
   const navMain = [
     {

@@ -10,6 +10,7 @@ import { getAuthUser } from "./lib/get-auth-user";
 const createCourseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
+  trainerId: z.string().min(1, "Trainer ID is required"),
 });
 
 const updateUserSchema = z.object({
@@ -162,6 +163,36 @@ app.get("/api/my-enrollments", async (c) => {
   return c.json({ enrollments });
 });
 
+app.get("/api/courses/:id/enrollments", async (c) => {
+  const user = await getAuthUser(c);
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const db = drizzle(c.env.DB);
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+
+  // Only admin and trainers can view course enrollments
+  if (!dbUser || (dbUser.role !== "admin" && dbUser.role !== "trainer")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  const courseId = c.req.param("id");
+
+  // Fetch enrollments with trainee details
+  const enrollments = await db
+    .select({
+      id: schema.enrollment.id,
+      enrolledAt: schema.enrollment.enrolledAt,
+      trainee: schema.user,
+    })
+    .from(schema.enrollment)
+    .innerJoin(schema.user, eq(schema.enrollment.traineeId, schema.user.id))
+    .where(eq(schema.enrollment.courseId, courseId));
+
+  return c.json({ enrollments });
+});
+
 app.post("/api/courses", zValidator("json", createCourseSchema), async (c) => {
   const user = await getAuthUser(c);
   if (!user) {
@@ -178,9 +209,9 @@ app.post("/api/courses", zValidator("json", createCourseSchema), async (c) => {
     return c.json({ error: "User not found" }, 401);
   }
 
-  // Role check: Only 'trainer' or 'admin' can create courses
-  if ((dbUser.role !== "trainer" && dbUser.role !== "admin") || (!dbUser.approved && dbUser.role !== "admin")) {
-    return c.json({ error: "Forbidden: Only approved trainers can create courses" }, 403);
+  // Role check: Only 'admin' can create courses (with trainer assignment)
+  if (dbUser.role !== "admin") {
+    return c.json({ error: "Forbidden: Only admins can create courses" }, 403);
   }
 
   const body = c.req.valid("json");
@@ -190,7 +221,7 @@ app.post("/api/courses", zValidator("json", createCourseSchema), async (c) => {
     id: crypto.randomUUID(),
     title: body.title,
     description: body.description ?? null,
-    trainerId: user.id,
+    trainerId: body.trainerId,
     createdAt: now,
     updatedAt: now,
   };
@@ -216,16 +247,23 @@ app.post("/api/courses/:id/enroll", async (c) => {
     return c.json({ error: "User not found" }, 401);
   }
 
-  // Role check: Only 'trainee' can enroll
-  if (dbUser.role !== "trainee") {
-    return c.json({ error: "Forbidden: Only trainees can enroll in courses" }, 403);
-  }
-
-  if (!dbUser.approved) {
-    return c.json({ error: "Forbidden: Account not approved" }, 403);
-  }
-
   const courseId = c.req.param("id");
+
+  // Get traineeId from body (for admin) or use current user (for trainee)
+  let traineeId = user.id;
+
+  if (dbUser.role === "admin") {
+    // Admin can enroll any trainee
+    const body = await c.req.json();
+    traineeId = body.traineeId || user.id;
+  } else if (dbUser.role === "trainee") {
+    // Trainee can only enroll themselves
+    if (!dbUser.approved) {
+      return c.json({ error: "Forbidden: Account not approved" }, 403);
+    }
+  } else {
+    return c.json({ error: "Forbidden: Only trainees and admins can enroll" }, 403);
+  }
 
   // Check if course exists
   const [existingCourse] = await db.select().from(schema.course).where(eq(schema.course.id, courseId));
@@ -237,7 +275,7 @@ app.post("/api/courses/:id/enroll", async (c) => {
   const [existingEnrollment] = await db
     .select()
     .from(schema.enrollment)
-    .where(and(eq(schema.enrollment.courseId, courseId), eq(schema.enrollment.traineeId, user.id)));
+    .where(and(eq(schema.enrollment.courseId, courseId), eq(schema.enrollment.traineeId, traineeId)));
 
   if (existingEnrollment) {
     return c.json({ error: "Already enrolled" }, 409);
@@ -245,8 +283,8 @@ app.post("/api/courses/:id/enroll", async (c) => {
 
   const newEnrollment = {
     id: crypto.randomUUID(),
-    courseId: courseId, // Ensure courseId is valid
-    traineeId: user.id,
+    courseId: courseId,
+    traineeId: traineeId,
     enrolledAt: new Date(),
   };
 
