@@ -84,6 +84,18 @@ export const getAuth = (env: Env) => {
     database: drizzleAdapter(db, {
       provider: "sqlite",
     }),
+    user: {
+      additionalFields: {
+        role: {
+          type: "string",
+          default: "trainee",
+        },
+        approved: {
+          type: "boolean",
+          default: false,
+        },
+      },
+    },
     emailAndPassword: {
       enabled: true,
       password: {

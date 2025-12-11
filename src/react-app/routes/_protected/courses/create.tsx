@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,6 +26,7 @@ import { toast } from "sonner";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/_protected/courses/create")({
   component: CreateCoursePage,
@@ -27,20 +35,41 @@ export const Route = createFileRoute("/_protected/courses/create")({
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
+  trainerId: z.string().min(1, "Please select a trainer"),
 });
 
 function CreateCoursePage() {
   const navigate = useNavigate();
+  const [trainers, setTrainers] = useState<any[]>([]);
+  const [loadingTrainers, setLoadingTrainers] = useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      trainerId: "",
     },
   });
 
-  // Removed trainer fetching logic as we don't assign trainer on creation anymore
+  useEffect(() => {
+    fetchTrainers();
+  }, []);
+
+  async function fetchTrainers() {
+    try {
+      const res = await fetch("/api/trainers");
+      if (res.ok) {
+        const data = await res.json();
+        setTrainers(data.trainers || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch trainers", error);
+      toast.error("Failed to load trainers");
+    } finally {
+      setLoadingTrainers(false);
+    }
+  }
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -48,15 +77,23 @@ function CreateCoursePage() {
       const res = await fetch("/api/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          title: values.title,
+          description: values.description,
+          trainerId: values.trainerId,
+        }),
       });
 
-      if (!res.ok) throw new Error("Failed to create course");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to create course");
+      }
 
       toast.success("Course created successfully");
       navigate({ to: "/courses" });
     } catch (error) {
-      toast.error("Error creating course");
+      console.error("Error creating course:", error);
+      toast.error(error instanceof Error ? error.message : "Error creating course");
     }
   }
 
@@ -108,6 +145,33 @@ function CreateCoursePage() {
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="trainerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assign Trainer</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger disabled={loadingTrainers}>
+                            <SelectValue placeholder={loadingTrainers ? "Loading trainers..." : "Select a trainer"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {trainers.map((trainer) => (
+                            <SelectItem key={trainer.id} value={trainer.id}>
+                              {trainer.name} ({trainer.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Select which trainer will teach this course.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

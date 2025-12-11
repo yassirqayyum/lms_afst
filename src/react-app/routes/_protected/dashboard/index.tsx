@@ -232,7 +232,10 @@ function Dashboard() {
                   </>
                 ) : currentUser?.role === "trainer" ? (
                   <>
-                    <Card>
+                    <Card
+                      className="cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => navigate({ to: "/courses" })}
+                    >
                       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
                           Active Courses
@@ -241,6 +244,7 @@ function Dashboard() {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">{courses.length}</div>
+                        <p className="text-xs text-muted-foreground mt-1">Manage evaluations</p>
                       </CardContent>
                     </Card>
                     <Card>

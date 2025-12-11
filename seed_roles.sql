@@ -49,3 +49,12 @@ VALUES
 -- Create Course
 INSERT INTO course (id, title, description, trainer_id, created_at, updated_at)
 VALUES ('course1', 'Full Stack Web Dev', 'Advance Full Stack Course', NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Create Enrollment for Trainer (Assigning trainer to course)
+-- Note: 'trainer_id' in enrollment table means "Trainer assigned to this enrollment".
+-- But the Logic we implemented for "My Courses" checks: SELECT DISTINCT course.* FROM course JOIN enrollment ON ... WHERE enrollment.trainer_id = user.id
+-- So we need an enrollment record where trainer_id is 'trainer1'.
+-- Let's enroll 'student1' into 'course1' with 'trainer1' as the instructor.
+INSERT INTO enrollment (id, user_id, course_id, trainer_id, enrolled_at, start_date, end_date)
+VALUES ('enroll1', 'student1', 'course1', 'trainer1', CURRENT_TIMESTAMP, NULL, NULL);
+

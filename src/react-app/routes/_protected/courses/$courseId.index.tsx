@@ -67,19 +67,12 @@ function CourseDetailPage() {
 
             // If trainer, fetch trainees for attendance
             if (isTrainer) {
-                // Ideally this should be /api/courses/:id/enrollments
-                // using /api/enrollments endpoint and filter client side.
-                const enrollRes = await fetch("/api/enrollments");
+                const enrollRes = await fetch(`/api/courses/${courseId}/enrollments`);
                 if (enrollRes.ok) {
-                    await enrollRes.json();
-                    // courseEnrollments unused, removing
-
-                    // QUICK FIX: Fetch all users for now (Trainees).
-                    const usersRes = await fetch("/api/users");
-                    if (usersRes.ok) {
-                        const uData = await usersRes.json();
-                        setTrainees(uData.users.filter((u: any) => u.role === "trainee"));
-                    }
+                    const data = await enrollRes.json();
+                    // data.enrollments contains { trainee: User, ... }
+                    const students = data.enrollments.map((e: any) => e.trainee);
+                    setTrainees(students);
                 }
             }
         } catch (e) {
@@ -115,10 +108,17 @@ function CourseDetailPage() {
                 }),
             });
 
-            if (!res.ok) throw new Error("Failed to create lecture");
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Failed to create lecture");
+            }
 
             const data = await res.json();
-            const lectureId = data.lectureId || data.id; // API might return different field
+            const lectureId = data.lectureId || data.lecture?.id;
+
+            if (!lectureId) {
+                throw new Error("No lecture ID returned from server");
+            }
 
             // 2. Upload File if present
             if (newLectureFile && lectureId) {
@@ -143,8 +143,9 @@ function CourseDetailPage() {
             fetchData();
 
         } catch (e) {
-            toast.error("Error creating lecture");
-            console.error(e);
+            const errorMsg = e instanceof Error ? e.message : "Error creating lecture";
+            toast.error(errorMsg);
+            console.error("Lecture creation error:", e);
         } finally {
             setCreating(false);
         }
@@ -261,11 +262,15 @@ function CourseDetailPage() {
                             <h2 className="text-3xl font-bold tracking-tight">{course.title}</h2>
                             <p className="text-muted-foreground">{course.description}</p>
                         </div>
-                        {isTrainer && (
+                    </div>
+
+                    {/* Trainer Actions Toolbar */}
+                    {isTrainer && (
+                        <div className="flex flex-wrap gap-4 p-4 border rounded-lg bg-muted/20 mb-6">
                             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button>
-                                        <Plus className="mr-2 h-4 w-4" /> Add Lecture
+                                    <Button size="lg" className="gap-2">
+                                        <Plus className="h-5 w-5" /> Add New Lecture
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
@@ -299,8 +304,8 @@ function CourseDetailPage() {
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     <div className="grid gap-4">
                         <Card>

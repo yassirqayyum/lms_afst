@@ -92,6 +92,7 @@ export const lecture = sqliteTable("lecture", {
     title: text("title").notNull(),
     description: text("description"),
     scheduledAt: integer("scheduled_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
 export const attendance = sqliteTable("attendance", {

@@ -5,7 +5,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, FileIcon, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_protected/my-courses/$courseId")({
     component: TraineeCourseDetailPage,
@@ -23,20 +24,12 @@ function TraineeCourseDetailPage() {
 
     async function fetchCourseData() {
         try {
-            const [coursesRes, lecturesRes] = await Promise.all([
-                fetch("/api/my-enrollments"),
-                fetch(`/api/courses/${courseId}/lectures`),
-            ]);
-
-            const coursesData = await coursesRes.json();
-            const lecturesData = await lecturesRes.json();
-
-            const enrollment = coursesData.enrollments?.find((e: any) => e.course.id === courseId);
-            if (enrollment) {
-                setCourse(enrollment.course);
+            const res = await fetch(`/api/courses/${courseId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setCourse(data.course);
+                setLectures(data.lectures || []);
             }
-
-            setLectures(lecturesData.lectures || []);
         } catch (error) {
             console.error("Failed to fetch course data", error);
         } finally {
@@ -116,7 +109,7 @@ function TraineeCourseDetailPage() {
                                                 </div>
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                                                     <div className="flex items-center">
                                                         <Calendar className="mr-2 h-4 w-4" />
                                                         {new Date(lecture.scheduledAt).toLocaleDateString()}
@@ -126,6 +119,38 @@ function TraineeCourseDetailPage() {
                                                         {new Date(lecture.scheduledAt).toLocaleTimeString()}
                                                     </div>
                                                 </div>
+
+                                                {/* Lecture Materials */}
+                                                {lecture.files && lecture.files.length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t">
+                                                        <p className="text-sm font-semibold mb-2">Course Materials</p>
+                                                        <div className="space-y-2">
+                                                            {lecture.files.map((file: any) => (
+                                                                <div key={file.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 hover:bg-muted transition-colors">
+                                                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                                        <FileIcon className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                                                        <span className="text-sm truncate">{file.fileName}</span>
+                                                                    </div>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        asChild
+                                                                    >
+                                                                        <a
+                                                                            href={`/api/lecture-files/${file.id}/download`}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="flex items-center gap-1"
+                                                                        >
+                                                                            <Download className="h-4 w-4" />
+                                                                            Download
+                                                                        </a>
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </CardContent>
                                         </Card>
                                     ))}

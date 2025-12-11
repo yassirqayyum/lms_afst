@@ -10,7 +10,7 @@ import { getAuthUser } from "./lib/get-auth-user";
 const createCourseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  trainerId: z.string().optional(), // Optional now
+  trainerId: z.string().min(1, "Trainer ID is required"),
 });
 
 const createEnrollmentSchema = z.object({
@@ -164,6 +164,32 @@ app.get("/api/users", async (c) => {
   return c.json({ users });
 });
 
+app.get("/api/trainers", async (c) => {
+  const user = await getAuthUser(c);
+  if (!user) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const db = drizzle(c.env.DB);
+  // Only admin can view trainers list
+  const [dbUser] = await db.select().from(schema.user).where(eq(schema.user.id, user.id));
+  if (dbUser?.role !== "admin") {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  // Get all trainers
+  const trainers = await db
+    .select({
+      id: schema.user.id,
+      name: schema.user.name,
+      email: schema.user.email,
+    })
+    .from(schema.user)
+    .where(eq(schema.user.role, "trainer"));
+
+  return c.json({ trainers });
+});
+
 app.post("/api/admin/users/:id/approve", async (c) => {
   const user = await getAuthUser(c);
   if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -223,7 +249,27 @@ app.get("/api/courses", async (c) => {
     return c.json({ courses: [] });
   }
 
-  // Fetch all courses with trainer details (for simplicity just courses first)
+  // Fetch all courses
+  if (dbUser.role === "trainer") {
+    // For trainers, only show courses where they are assigned via enrollment
+    const courses = await db
+      .selectDistinct({
+        id: schema.course.id,
+        title: schema.course.title,
+        description: schema.course.description,
+        trainerId: schema.course.trainerId,
+        createdAt: schema.course.createdAt,
+        updatedAt: schema.course.updatedAt,
+      })
+      .from(schema.course)
+      .innerJoin(schema.enrollment, eq(schema.course.id, schema.enrollment.courseId))
+      .where(eq(schema.enrollment.trainerId, user.id));
+
+    return c.json({ courses });
+  }
+
+  // For Admin (and others if approved? logic says 'if not approved && not admin return empty', so here we are approved or admin)
+  // Admin sees all
   const courses = await db.select().from(schema.course);
   return c.json({ courses });
 });
@@ -880,7 +926,7 @@ app.post("/api/lectures", zValidator("json", createLectureSchema), async (c) => 
   };
 
   await db.insert(schema.lecture).values(newLecture);
-  return c.json({ lecture: newLecture }, 201);
+  return c.json({ lectureId: newLecture.id, lecture: newLecture }, 201);
 });
 
 app.post("/api/attendance", zValidator("json", markAttendanceSchema), async (c) => {
