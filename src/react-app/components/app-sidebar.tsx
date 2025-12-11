@@ -1,4 +1,4 @@
-import { IconDashboard, IconHelp, IconUsers, IconBook, IconChecklist } from "@tabler/icons-react";
+import { IconDashboard, IconHelp, IconUsers, IconBook } from "@tabler/icons-react";
 import { GraduationCap } from "lucide-react";
 import * as React from "react";
 
@@ -11,7 +11,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useSession } from "@/lib/auth-client";
@@ -54,23 +53,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   if (role === "admin") {
     navMain.push(
-      { title: "Manage Users", url: "/users", icon: IconUsers },
+      { title: "Manage Trainers", url: "/users?role=trainer", icon: IconUsers },
+      { title: "Manage Students", url: "/users?role=trainee", icon: IconUsers },
       { title: "Manage Courses", url: "/courses", icon: IconBook },
+      { title: "Course Enrollments", url: "/enrollments", icon: IconBook }
     );
   } else if (role === "trainer") {
     navMain.push(
-      { title: "My Courses", url: "/trainer/courses", icon: IconBook },
-      { title: "Attendance", url: "/trainer/attendance", icon: IconChecklist },
+      { title: "My Courses", url: "/courses", icon: IconBook }
     );
   } else if (role === "trainee") {
     navMain.push(
-      { title: "My Learning", url: "/learning", icon: IconBook },
+      { title: "My Courses", url: "/my-courses", icon: IconBook }
     );
   }
 
   const sidebarData = {
     user,
-    navMain,
+    navMain: navMain, // Changed to navMain
     navSecondary: [
       {
         title: "Get Help",
@@ -81,25 +81,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}> {/* Changed collapsible prop */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            >
-              <a href="#">
-                <div className="flex items-center gap-2">
-                  <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-                    <GraduationCap className="size-4" />
-                  </div>
-                  <span className="text-base font-semibold">
-                    LMS Platform
-                  </span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <a href="/" className="flex items-center gap-2 p-2">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <GraduationCap className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">LMS Platform</span>
+                <span className="truncate text-xs">Learning Management</span>
+              </div>
+            </a>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

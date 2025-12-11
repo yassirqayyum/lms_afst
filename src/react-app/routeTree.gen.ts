@@ -15,15 +15,19 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ResetPasswordTokenRouteImport } from './routes/reset-password.$token'
 import { Route as ProtectedPendingApprovalRouteImport } from './routes/_protected/pending-approval'
+import { Route as ProtectedEnrollmentsRouteImport } from './routes/_protected/enrollments'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgetPasswordRouteImport } from './routes/_auth/forget-password'
 import { Route as ProtectedUsersIndexRouteImport } from './routes/_protected/users/index'
+import { Route as ProtectedMyCoursesIndexRouteImport } from './routes/_protected/my-courses/index'
 import { Route as ProtectedDashboardIndexRouteImport } from './routes/_protected/dashboard/index'
 import { Route as ProtectedCoursesIndexRouteImport } from './routes/_protected/courses/index'
+import { Route as ProtectedMyCoursesCourseIdRouteImport } from './routes/_protected/my-courses/$courseId'
 import { Route as ProtectedCoursesCreateRouteImport } from './routes/_protected/courses/create'
 import { Route as ProtectedCoursesCourseIdIndexRouteImport } from './routes/_protected/courses/$courseId.index'
 import { Route as ProtectedCoursesCourseIdEnrollmentsRouteImport } from './routes/_protected/courses/$courseId.enrollments'
+import { Route as ProtectedCoursesCourseIdAttendanceRouteImport } from './routes/_protected/courses/$courseId.attendance'
 
 const LogoutRoute = LogoutRouteImport.update({
   id: '/logout',
@@ -54,6 +58,11 @@ const ProtectedPendingApprovalRoute =
     path: '/pending-approval',
     getParentRoute: () => ProtectedRoute,
   } as any)
+const ProtectedEnrollmentsRoute = ProtectedEnrollmentsRouteImport.update({
+  id: '/enrollments',
+  path: '/enrollments',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
@@ -74,6 +83,11 @@ const ProtectedUsersIndexRoute = ProtectedUsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedMyCoursesIndexRoute = ProtectedMyCoursesIndexRouteImport.update({
+  id: '/my-courses/',
+  path: '/my-courses/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedDashboardIndexRoute = ProtectedDashboardIndexRouteImport.update({
   id: '/dashboard/',
   path: '/dashboard/',
@@ -84,6 +98,12 @@ const ProtectedCoursesIndexRoute = ProtectedCoursesIndexRouteImport.update({
   path: '/courses/',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedMyCoursesCourseIdRoute =
+  ProtectedMyCoursesCourseIdRouteImport.update({
+    id: '/my-courses/$courseId',
+    path: '/my-courses/$courseId',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
 const ProtectedCoursesCreateRoute = ProtectedCoursesCreateRouteImport.update({
   id: '/courses/create',
   path: '/courses/create',
@@ -101,6 +121,12 @@ const ProtectedCoursesCourseIdEnrollmentsRoute =
     path: '/courses/$courseId/enrollments',
     getParentRoute: () => ProtectedRoute,
   } as any)
+const ProtectedCoursesCourseIdAttendanceRoute =
+  ProtectedCoursesCourseIdAttendanceRouteImport.update({
+    id: '/courses/$courseId/attendance',
+    path: '/courses/$courseId/attendance',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,12 +134,16 @@ export interface FileRoutesByFullPath {
   '/forget-password': typeof AuthForgetPasswordRoute
   '/login': typeof AuthLoginRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/enrollments': typeof ProtectedEnrollmentsRoute
   '/pending-approval': typeof ProtectedPendingApprovalRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/courses/create': typeof ProtectedCoursesCreateRoute
+  '/my-courses/$courseId': typeof ProtectedMyCoursesCourseIdRoute
   '/courses': typeof ProtectedCoursesIndexRoute
   '/dashboard': typeof ProtectedDashboardIndexRoute
+  '/my-courses': typeof ProtectedMyCoursesIndexRoute
   '/users': typeof ProtectedUsersIndexRoute
+  '/courses/$courseId/attendance': typeof ProtectedCoursesCourseIdAttendanceRoute
   '/courses/$courseId/enrollments': typeof ProtectedCoursesCourseIdEnrollmentsRoute
   '/courses/$courseId': typeof ProtectedCoursesCourseIdIndexRoute
 }
@@ -123,12 +153,16 @@ export interface FileRoutesByTo {
   '/forget-password': typeof AuthForgetPasswordRoute
   '/login': typeof AuthLoginRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/enrollments': typeof ProtectedEnrollmentsRoute
   '/pending-approval': typeof ProtectedPendingApprovalRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/courses/create': typeof ProtectedCoursesCreateRoute
+  '/my-courses/$courseId': typeof ProtectedMyCoursesCourseIdRoute
   '/courses': typeof ProtectedCoursesIndexRoute
   '/dashboard': typeof ProtectedDashboardIndexRoute
+  '/my-courses': typeof ProtectedMyCoursesIndexRoute
   '/users': typeof ProtectedUsersIndexRoute
+  '/courses/$courseId/attendance': typeof ProtectedCoursesCourseIdAttendanceRoute
   '/courses/$courseId/enrollments': typeof ProtectedCoursesCourseIdEnrollmentsRoute
   '/courses/$courseId': typeof ProtectedCoursesCourseIdIndexRoute
 }
@@ -141,12 +175,16 @@ export interface FileRoutesById {
   '/_auth/forget-password': typeof AuthForgetPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
+  '/_protected/enrollments': typeof ProtectedEnrollmentsRoute
   '/_protected/pending-approval': typeof ProtectedPendingApprovalRoute
   '/reset-password/$token': typeof ResetPasswordTokenRoute
   '/_protected/courses/create': typeof ProtectedCoursesCreateRoute
+  '/_protected/my-courses/$courseId': typeof ProtectedMyCoursesCourseIdRoute
   '/_protected/courses/': typeof ProtectedCoursesIndexRoute
   '/_protected/dashboard/': typeof ProtectedDashboardIndexRoute
+  '/_protected/my-courses/': typeof ProtectedMyCoursesIndexRoute
   '/_protected/users/': typeof ProtectedUsersIndexRoute
+  '/_protected/courses/$courseId/attendance': typeof ProtectedCoursesCourseIdAttendanceRoute
   '/_protected/courses/$courseId/enrollments': typeof ProtectedCoursesCourseIdEnrollmentsRoute
   '/_protected/courses/$courseId/': typeof ProtectedCoursesCourseIdIndexRoute
 }
@@ -158,12 +196,16 @@ export interface FileRouteTypes {
     | '/forget-password'
     | '/login'
     | '/sign-up'
+    | '/enrollments'
     | '/pending-approval'
     | '/reset-password/$token'
     | '/courses/create'
+    | '/my-courses/$courseId'
     | '/courses'
     | '/dashboard'
+    | '/my-courses'
     | '/users'
+    | '/courses/$courseId/attendance'
     | '/courses/$courseId/enrollments'
     | '/courses/$courseId'
   fileRoutesByTo: FileRoutesByTo
@@ -173,12 +215,16 @@ export interface FileRouteTypes {
     | '/forget-password'
     | '/login'
     | '/sign-up'
+    | '/enrollments'
     | '/pending-approval'
     | '/reset-password/$token'
     | '/courses/create'
+    | '/my-courses/$courseId'
     | '/courses'
     | '/dashboard'
+    | '/my-courses'
     | '/users'
+    | '/courses/$courseId/attendance'
     | '/courses/$courseId/enrollments'
     | '/courses/$courseId'
   id:
@@ -190,12 +236,16 @@ export interface FileRouteTypes {
     | '/_auth/forget-password'
     | '/_auth/login'
     | '/_auth/sign-up'
+    | '/_protected/enrollments'
     | '/_protected/pending-approval'
     | '/reset-password/$token'
     | '/_protected/courses/create'
+    | '/_protected/my-courses/$courseId'
     | '/_protected/courses/'
     | '/_protected/dashboard/'
+    | '/_protected/my-courses/'
     | '/_protected/users/'
+    | '/_protected/courses/$courseId/attendance'
     | '/_protected/courses/$courseId/enrollments'
     | '/_protected/courses/$courseId/'
   fileRoutesById: FileRoutesById
@@ -252,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedPendingApprovalRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/enrollments': {
+      id: '/_protected/enrollments'
+      path: '/enrollments'
+      fullPath: '/enrollments'
+      preLoaderRoute: typeof ProtectedEnrollmentsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_auth/sign-up': {
       id: '/_auth/sign-up'
       path: '/sign-up'
@@ -280,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedUsersIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/my-courses/': {
+      id: '/_protected/my-courses/'
+      path: '/my-courses'
+      fullPath: '/my-courses'
+      preLoaderRoute: typeof ProtectedMyCoursesIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/dashboard/': {
       id: '/_protected/dashboard/'
       path: '/dashboard'
@@ -292,6 +356,13 @@ declare module '@tanstack/react-router' {
       path: '/courses'
       fullPath: '/courses'
       preLoaderRoute: typeof ProtectedCoursesIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/my-courses/$courseId': {
+      id: '/_protected/my-courses/$courseId'
+      path: '/my-courses/$courseId'
+      fullPath: '/my-courses/$courseId'
+      preLoaderRoute: typeof ProtectedMyCoursesCourseIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/courses/create': {
@@ -315,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedCoursesCourseIdEnrollmentsRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/courses/$courseId/attendance': {
+      id: '/_protected/courses/$courseId/attendance'
+      path: '/courses/$courseId/attendance'
+      fullPath: '/courses/$courseId/attendance'
+      preLoaderRoute: typeof ProtectedCoursesCourseIdAttendanceRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
   }
 }
 
@@ -333,21 +411,30 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface ProtectedRouteChildren {
+  ProtectedEnrollmentsRoute: typeof ProtectedEnrollmentsRoute
   ProtectedPendingApprovalRoute: typeof ProtectedPendingApprovalRoute
   ProtectedCoursesCreateRoute: typeof ProtectedCoursesCreateRoute
+  ProtectedMyCoursesCourseIdRoute: typeof ProtectedMyCoursesCourseIdRoute
   ProtectedCoursesIndexRoute: typeof ProtectedCoursesIndexRoute
   ProtectedDashboardIndexRoute: typeof ProtectedDashboardIndexRoute
+  ProtectedMyCoursesIndexRoute: typeof ProtectedMyCoursesIndexRoute
   ProtectedUsersIndexRoute: typeof ProtectedUsersIndexRoute
+  ProtectedCoursesCourseIdAttendanceRoute: typeof ProtectedCoursesCourseIdAttendanceRoute
   ProtectedCoursesCourseIdEnrollmentsRoute: typeof ProtectedCoursesCourseIdEnrollmentsRoute
   ProtectedCoursesCourseIdIndexRoute: typeof ProtectedCoursesCourseIdIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedEnrollmentsRoute: ProtectedEnrollmentsRoute,
   ProtectedPendingApprovalRoute: ProtectedPendingApprovalRoute,
   ProtectedCoursesCreateRoute: ProtectedCoursesCreateRoute,
+  ProtectedMyCoursesCourseIdRoute: ProtectedMyCoursesCourseIdRoute,
   ProtectedCoursesIndexRoute: ProtectedCoursesIndexRoute,
   ProtectedDashboardIndexRoute: ProtectedDashboardIndexRoute,
+  ProtectedMyCoursesIndexRoute: ProtectedMyCoursesIndexRoute,
   ProtectedUsersIndexRoute: ProtectedUsersIndexRoute,
+  ProtectedCoursesCourseIdAttendanceRoute:
+    ProtectedCoursesCourseIdAttendanceRoute,
   ProtectedCoursesCourseIdEnrollmentsRoute:
     ProtectedCoursesCourseIdEnrollmentsRoute,
   ProtectedCoursesCourseIdIndexRoute: ProtectedCoursesCourseIdIndexRoute,

@@ -9,13 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { signUp } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,7 +23,7 @@ const formSchema = z
     name: z.string().min(1, {
       message: "Name is required.",
     }),
-    role: z.enum(["trainer", "trainee"]),
+    role: z.enum(["admin", "trainer", "trainee"]),
     email: z.string().email({
       message: "Please enter a valid email address.",
     }),
@@ -90,6 +84,7 @@ export function SignUpForm({
   };
 
   return (
+
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -134,17 +129,31 @@ export function SignUpForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="trainee">Trainee</SelectItem>
-                  <SelectItem value="trainer">Trainer</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-1"
+                >
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="trainee" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Trainee - I want to learn
+                    </FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <RadioGroupItem value="trainer" />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Trainer - I want to teach
+                    </FormLabel>
+                  </FormItem>
+                  {/* Removed Admin option */}
+                </RadioGroup>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -175,7 +184,7 @@ export function SignUpForm({
             </FormItem>
           )}
         />
-        <Button type="submit">Sign Up</Button>
+        <Button type="submit" className="w-full">Sign Up</Button>
         <div className="text-center text-sm">
           Already have an account?{" "}
           <Link to="/login" className="underline underline-offset-4">
@@ -185,4 +194,5 @@ export function SignUpForm({
       </form>
     </Form>
   );
+
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
     BookOpen,
@@ -22,6 +22,8 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+    const navigate = useNavigate();
+
     return (
         <div className="min-h-screen bg-background">
             <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-md">
@@ -53,11 +55,11 @@ function LandingPage() {
                         </a>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" asChild>
-                            <Link to="/login">Sign In</Link>
+                        <Button variant="ghost" onClick={() => navigate({ to: "/login" })}>
+                            Sign In
                         </Button>
-                        <Button asChild>
-                            <Link to="/sign-up">Get Started</Link>
+                        <Button onClick={() => navigate({ to: "/sign-up" })}>
+                            Get Started
                         </Button>
                     </div>
                 </div>
@@ -87,11 +89,13 @@ function LandingPage() {
                             comprehensive learning paths. Join the future of education today.
                         </p>
                         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                            <Button size="lg" className="h-12 px-8 text-base" asChild>
-                                <Link to="/sign-up">
-                                    Start Learning
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Link>
+                            <Button
+                                size="lg"
+                                className="h-12 px-8 text-base"
+                                onClick={() => navigate({ to: "/sign-up" })}
+                            >
+                                Start Learning
+                                <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </div>

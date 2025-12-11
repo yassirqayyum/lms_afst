@@ -63,22 +63,25 @@ export const course = sqliteTable("course", {
     id: text("id").primaryKey(),
     title: text("title").notNull(),
     description: text("description"),
-    trainerId: text("trainer_id")
-        .notNull()
-        .references(() => user.id),
+    trainerId: text("trainer_id"), // Made optional
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
 export const enrollment = sqliteTable("enrollment", {
     id: text("id").primaryKey(),
+    userId: text("user_id")
+        .notNull()
+        .references(() => user.id, { onDelete: "cascade" }),
     courseId: text("course_id")
         .notNull()
         .references(() => course.id, { onDelete: "cascade" }),
-    traineeId: text("trainee_id")
+    trainerId: text("trainer_id") // Added required trainer assignment
         .notNull()
-        .references(() => user.id, { onDelete: "cascade" }),
+        .references(() => user.id),
     enrolledAt: integer("enrolled_at", { mode: "timestamp" }).notNull(),
+    startDate: text("start_date"),
+    endDate: text("end_date"),
 });
 
 export const lecture = sqliteTable("lecture", {
@@ -89,11 +92,7 @@ export const lecture = sqliteTable("lecture", {
     title: text("title").notNull(),
     description: text("description"),
     scheduledAt: integer("scheduled_at", { mode: "timestamp" }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
-
-export const attendanceStatusEnum = ["present", "absent", "late"] as const;
-export type AttendanceStatus = (typeof attendanceStatusEnum)[number];
 
 export const attendance = sqliteTable("attendance", {
     id: text("id").primaryKey(),
@@ -103,6 +102,18 @@ export const attendance = sqliteTable("attendance", {
     traineeId: text("trainee_id")
         .notNull()
         .references(() => user.id, { onDelete: "cascade" }),
-    status: text("status", { enum: attendanceStatusEnum }).notNull(),
+    status: text("status").notNull(), // 'present', 'absent', 'late'
     markedAt: integer("marked_at", { mode: "timestamp" }).notNull(),
+});
+
+export const lectureFile = sqliteTable("lecture_file", {
+    id: text("id").primaryKey(),
+    lectureId: text("lecture_id")
+        .notNull()
+        .references(() => lecture.id, { onDelete: "cascade" }),
+    fileName: text("file_name").notNull(),
+    fileUrl: text("file_url").notNull(),
+    fileType: text("file_type").notNull(),
+    fileSize: integer("file_size").notNull(),
+    uploadedAt: integer("uploaded_at", { mode: "timestamp" }).notNull(),
 });

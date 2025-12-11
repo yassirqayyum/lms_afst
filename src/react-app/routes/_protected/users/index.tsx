@@ -25,8 +25,17 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
+interface UserSearch {
+  role?: 'trainer' | 'trainee';
+}
+
 export const Route = createFileRoute("/_protected/users/")({
   component: UsersPage,
+  validateSearch: (search: Record<string, unknown>): UserSearch => {
+    return {
+      role: search.role as UserSearch['role'],
+    };
+  },
 });
 
 function UsersPage() {
@@ -34,6 +43,8 @@ function UsersPage() {
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const { role } = Route.useSearch();
 
   useEffect(() => {
     async function fetchCurrentUser() {
@@ -54,7 +65,13 @@ function UsersPage() {
     try {
       const res = await fetch("/api/users");
       const data = await res.json();
-      setUsers(data.users || []);
+      let fetchedUsers = data.users || [];
+
+      if (role) {
+        fetchedUsers = fetchedUsers.filter((u: any) => u.role === role);
+      }
+
+      setUsers(fetchedUsers);
     } catch (error) {
       toast.error("Failed to fetch users");
     } finally {
@@ -68,7 +85,7 @@ function UsersPage() {
     } else if (currentUser) {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, role]);
 
   const handleApprove = async (userId: string) => {
     try {
@@ -204,11 +221,6 @@ function UsersPage() {
                               onClick={() => handleRoleChange(user.id, "trainee")}
                             >
                               Make Trainee
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleRoleChange(user.id, "admin")}
-                            >
-                              Make Admin
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
